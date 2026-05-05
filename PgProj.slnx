@@ -2,6 +2,20 @@
   <Folder Name="/samples/">
     <Project Path="samples/MyApp.Data/MyApp.Data.csproj" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+    <File Path="TODO.md" />
+  </Folder>
+  <Folder Name="/Solution Items/docs/">
+    <File Path="docs/architecture.md" />
+    <File Path="docs/engineering.md" />
+    <File Path="docs/overview.md" />
+    <File Path="docs/technical.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj" />
     <Project Path="src/Cadwell.PgPkg.Tool/Cadwell.PgPkg.Tool.csproj" />

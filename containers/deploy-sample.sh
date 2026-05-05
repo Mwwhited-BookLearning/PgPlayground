@@ -21,20 +21,72 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DB_PROJECT="$REPO_ROOT/samples/MyApp.Database/MyApp.Database.pgpkgproj"
 PKG_PATH="$REPO_ROOT/samples/MyApp.Database/bin/Debug/net10.0/MyApp.Database-1.0.0.pgpkg"
-CONN_STR="Host=localhost;Port=5432;Database=myapp;Username=myapp;Password=myapp"
 
-# 1. Start Docker stack
+# ── 1. Load .env ──────────────────────────────────────────────────────────────
+ENV_FILE="$SCRIPT_DIR/.env"
+ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
+
+if [[ ! -f "$ENV_FILE" && -f "$ENV_EXAMPLE" ]]; then
+  echo ".env not found — copying from .env.example"
+  cp "$ENV_EXAMPLE" "$ENV_FILE"
+fi
+
+# Defaults
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=admin
+POSTGRES_DB=postgres
+POSTGRES_PORT=5432
+PGADMIN_EMAIL=admin@pgproj.local
+PGADMIN_PASSWORD=admin
+PGADMIN_PORT=5050
+APP_DB=myapp
+APP_DB_USER=myapp
+APP_DB_PASSWORD=myapp
+
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "$ENV_FILE"
+  set +a
+fi
+
+# ── 2. Regenerate pgadmin/pgpass and servers.json ─────────────────────────────
+echo "Writing pgadmin/pgpass..."
+printf 'postgres:%s:*:%s:%s' "$POSTGRES_PORT" "$POSTGRES_USER" "$POSTGRES_PASSWORD" \
+  > "$SCRIPT_DIR/pgadmin/pgpass"
+
+echo "Writing pgadmin/servers.json..."
+cat > "$SCRIPT_DIR/pgadmin/servers.json" <<JSON
+{
+  "Servers": {
+    "1": {
+      "Name": "PgProj Local",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": $POSTGRES_PORT,
+      "MaintenanceDB": "$POSTGRES_DB",
+      "Username": "$POSTGRES_USER",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
+JSON
+
+# ── 3. Start Docker stack ─────────────────────────────────────────────────────
 if [[ "$SKIP_DOCKER" == false ]]; then
+  echo ""
   echo "Starting Docker stack..."
   docker compose -f "$SCRIPT_DIR/docker-compose.yml" up -d --wait
 fi
 
-# 2. Build
+# ── 4. Build ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Building MyApp.Database..."
 dotnet build "$DB_PROJECT"
 
-# 3. Deploy
+# ── 5. Deploy ─────────────────────────────────────────────────────────────────
+CONN_STR="Host=localhost;Port=${POSTGRES_PORT};Database=${APP_DB};Username=${APP_DB_USER};Password=${APP_DB_PASSWORD}"
 echo ""
 echo "Deploying $PKG_PATH..."
 PGPKG_ARGS=(deploy "$PKG_PATH" --connection "$CONN_STR")
@@ -43,6 +95,6 @@ PGPKG_ARGS=(deploy "$PKG_PATH" --connection "$CONN_STR")
 pgpkg "${PGPKG_ARGS[@]}"
 
 echo ""
-echo "Done. pgAdmin is available at http://localhost:5050"
-echo "  Email   : admin@pgproj.local"
-echo "  Password: pgadmin"
+echo "Done."
+echo "  pgAdmin : http://localhost:$PGADMIN_PORT  ($PGADMIN_EMAIL / $PGADMIN_PASSWORD)"
+echo "  Postgres: localhost:$POSTGRES_PORT  ($POSTGRES_USER / [see .env])"
