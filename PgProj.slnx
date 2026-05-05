@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/MyApp.Data/MyApp.Data.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj" />
+    <Project Path="src/Cadwell.PgPkg.Tool/Cadwell.PgPkg.Tool.csproj" />
+  </Folder>
+  <Project Path="samples/MyApp.Data/SchemaScript/SchemaScript.csproj" />
+</Solution>

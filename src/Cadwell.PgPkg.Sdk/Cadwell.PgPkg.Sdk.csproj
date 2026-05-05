@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Cadwell.PgPkg.Sdk</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Cadwell</Authors>
+    <Description>MSBuild SDK for building PostgreSQL desired-state deployment packages (.pgpkg)</Description>
+    <PackageTags>postgres;postgresql;pgschema;dacpac;sdk;msbuild</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <!-- This package IS the SDK — no lib output needed -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Sdk entry-points -->
+    <None Include="Sdk\Sdk.props" Pack="true" PackagePath="Sdk\Sdk.props" />
+    <None Include="Sdk\Sdk.targets" Pack="true" PackagePath="Sdk\Sdk.targets" />
+    <!-- MSBuild props/targets (imported via Sdk entry-points) -->
+    <None Include="build\Cadwell.PgPkg.Sdk.props" Pack="true" PackagePath="build\Cadwell.PgPkg.Sdk.props" />
+    <None Include="build\Cadwell.PgPkg.Sdk.targets" Pack="true" PackagePath="build\Cadwell.PgPkg.Sdk.targets" />
+  </ItemGroup>
+
+</Project>

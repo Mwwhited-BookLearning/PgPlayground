@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\build\Cadwell.PgPkg.Sdk.props"
+          Condition="'$(CadwellPgPkgSdkPropsImported)' != 'true'" />
+</Project>

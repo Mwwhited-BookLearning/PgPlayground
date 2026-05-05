@@ -1,0 +1,37 @@
+<Project Sdk="Cadwell.PgPkg.Sdk/1.0.0">
+
+  <PropertyGroup>
+    <DatabaseName>myapp</DatabaseName>
+    <Version>1.0.0</Version>
+    <!-- Schema comes entirely from the EF extraction target below -->
+    <EnableDefaultPgSchemaItems>false</EnableDefaultPgSchemaItems>
+  </PropertyGroup>
+
+  <!--
+    ExtractEfSchema runs before CreatePgPkg (via CollectPgSchema).
+    It builds and runs SchemaScript — a small console app that calls
+    DbContext.GenerateCreateScript() — and adds the output SQL to @(PgSchema).
+    No EF migration history is required.
+  -->
+  <PropertyGroup>
+    <_SchemaScriptProject>$(MSBuildThisFileDirectory)..\MyApp.Data\SchemaScript\SchemaScript.csproj</_SchemaScriptProject>
+    <_EfOutputFile>$(MSBuildThisFileDirectory)schema\001_ef_schema.sql</_EfOutputFile>
+  </PropertyGroup>
+
+  <Target Name="ExtractEfSchema" BeforeTargets="CollectPgSchema">
+
+    <!-- Build the schema script generator -->
+    <Exec Command="dotnet build &quot;$(_SchemaScriptProject)&quot;" />
+
+    <MakeDir Directories="$(MSBuildThisFileDirectory)schema" />
+
+    <!-- Run the generator; it writes the SQL to the output file -->
+    <Exec Command="dotnet run --project &quot;$(_SchemaScriptProject)&quot; --no-build -- &quot;$(_EfOutputFile)&quot;" />
+
+    <ItemGroup>
+      <PgSchema Include="$(_EfOutputFile)" />
+    </ItemGroup>
+
+  </Target>
+
+</Project>

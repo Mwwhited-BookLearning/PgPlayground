@@ -1,0 +1,57 @@
+<Project>
+  <PropertyGroup>
+    <CadwellPgPkgSdkTargetsImported>true</CadwellPgPkgSdkTargetsImported>
+    <_PgPkgStageDir>$(IntermediateOutputPath)pgpkg-stage\</_PgPkgStageDir>
+    <_PgPkgSchemaStageDir>$(_PgPkgStageDir)$(PgPkgSchemaRoot)\</_PgPkgSchemaStageDir>
+  </PropertyGroup>
+
+  <!-- ── Standard entry-points expected by dotnet build / MSBuild ────────── -->
+
+  <Target Name="Build" DependsOnTargets="CreatePgPkg" />
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+
+  <!-- ── CollectPgSchema ────────────────────────────────────────────────────── -->
+  <!--  Extension point: other targets run BeforeTargets="CollectPgSchema" to   -->
+  <!--  add dynamically-generated files to @(PgSchema).                         -->
+  <Target Name="CollectPgSchema" />
+
+  <!-- ── CreatePgPkg ──────────────────────────────────────────────────────── -->
+  <!--  Zips all @(PgSchema) items into schema/{DatabaseName}/... inside a .pgpkg -->
+  <Target Name="CreatePgPkg" DependsOnTargets="CollectPgSchema">
+
+    <Message Text="Creating package: $(PgPkgFilePath)" Importance="high" />
+
+    <MakeDir Directories="$(PgPkgOutputPath)" />
+
+    <RemoveDir Directories="$(_PgPkgStageDir)" />
+    <MakeDir   Directories="$(_PgPkgSchemaStageDir)" />
+
+    <!-- Copy each schema file, preserving its relative path inside the project -->
+    <Copy SourceFiles="%(PgSchema.FullPath)"
+          DestinationFiles="$(_PgPkgSchemaStageDir)%(PgSchema.RecursiveDir)%(PgSchema.Filename)%(PgSchema.Extension)"
+          SkipUnchangedFiles="true" />
+
+    <!-- Write a manifest so consumers know what database this package targets -->
+    <WriteLinesToFile File="$(_PgPkgStageDir)manifest.json"
+                      Overwrite="true"
+                      Lines='{ "databaseName": "$(DatabaseName)", "version": "$(Version)", "created": "$(MSBuildProjectName)" }' />
+
+    <!-- Delete any stale package then zip the stage directory -->
+    <Delete Files="$(PgPkgFilePath)" />
+    <ZipDirectory SourceDirectory="$(_PgPkgStageDir)"
+                  DestinationFile="$(PgPkgFilePath)"
+                  Overwrite="true" />
+
+    <Message Text="Package written: $(PgPkgFilePath)" Importance="high" />
+  </Target>
+
+  <!-- ── CleanPgPkg ──────────────────────────────────────────────────────── -->
+  <Target Name="Clean">
+    <Delete Files="$(PgPkgFilePath)" />
+    <RemoveDir Directories="$(_PgPkgStageDir)" />
+  </Target>
+
+  <!-- Expose the package path as a build output for other tooling -->
+  <Target Name="GetPgPkgOutputPath" Returns="$(PgPkgFilePath)" />
+</Project>

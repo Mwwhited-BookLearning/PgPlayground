@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>pgpkg</AssemblyName>
+    <RootNamespace>Cadwell.PgPkg.Tool</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- dotnet tool packaging -->
+    <PackageId>Cadwell.PgPkg.Tool</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Cadwell</Authors>
+    <Description>CLI tool for deploying PostgreSQL desired-state packages (.pgpkg) via pgschema</Description>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>pgpkg</ToolCommandName>
+    <PackageTags>postgres;postgresql;pgschema;dacpac;tool</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+  </ItemGroup>
+
+</Project>
