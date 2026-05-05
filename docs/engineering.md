@@ -14,6 +14,58 @@
 
 ---
 
+## Installing pgschema
+
+pgschema is a Go binary distributed as a standalone release — it is not a .NET tool. It must be on `PATH` or pointed to via the `PGSCHEMA_PATH` environment variable.
+
+> **Windows note:** pgschema does not publish Windows native binaries. Use [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and install pgschema inside the Linux environment. The `pgpkg` tool reads `PGSCHEMA_PATH` so you can point it at the WSL binary if needed.
+
+### macOS
+
+```bash
+brew install pgschema
+pgschema --version
+```
+
+### Linux
+
+**Option A — Go toolchain (recommended if Go is already installed):**
+
+```bash
+go install github.com/pgschema/pgschema@latest
+# Binary is placed in $(go env GOPATH)/bin — ensure that is on PATH
+```
+
+**Option B — Pre-built release binary:**
+
+```bash
+# Replace <version> and <arch> (e.g. 0.1.0, linux_amd64)
+curl -sSL https://github.com/pgschema/pgschema/releases/download/v<version>/pgschema_<version>_linux_<arch>.tar.gz \
+  | tar -xz pgschema
+sudo mv pgschema /usr/local/bin/
+pgschema --version
+```
+
+### WSL2 (Windows users)
+
+1. Install a WSL2 distribution (Ubuntu 22.04 recommended).
+2. Follow the Linux instructions above inside WSL.
+3. Call `pgpkg` commands from a WSL shell, or set `PGSCHEMA_PATH` in Windows to the WSL binary path:
+   ```powershell
+   $env:PGSCHEMA_PATH = "wsl pgschema"
+   ```
+
+### Verifying the installation
+
+```bash
+pgschema --version
+# Expected: pgschema version X.Y.Z
+```
+
+The `pgpkg` tool runs a version pre-flight check on every `deploy`/`diff`/`publish` invocation. It will fail fast with a clear message if pgschema is missing or below the minimum required version.
+
+---
+
 ## Repository Layout
 
 ```
@@ -109,6 +161,77 @@ dotnet pack src\Cadwell.PgPkg.Tool\Cadwell.PgPkg.Tool.csproj -o local-feed
 dotnet tool install --global Cadwell.PgPkg.Tool --add-source .\local-feed
 pgpkg --help
 ```
+
+---
+
+## Configuring a NuGet package feed
+
+`local-feed/` is gitignored and only usable on the machine where you ran `pack-sdk.ps1`. For team use or CI, publish `Cadwell.PgPkg.Sdk` and `Cadwell.PgPkg.Tool` to a real NuGet feed.
+
+### GitHub Packages
+
+**1. Add the feed to `nuget.config`:**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="github" value="https://nuget.pkg.github.com/<org>/index.json" />
+  </packageSources>
+  <packageSourceCredentials>
+    <github>
+      <add key="Username" value="%GITHUB_ACTOR%" />
+      <add key="ClearTextPassword" value="%NUGET_AUTH_TOKEN%" />
+    </github>
+  </packageSourceCredentials>
+</configuration>
+```
+
+Replace `<org>` with your GitHub organisation or username.
+
+**2. Publish from the release workflow:**
+
+The `.github/workflows/release.yml` workflow already does this on `v*` tags:
+
+```yaml
+- name: Publish SDK
+  run: dotnet nuget push local-feed/Cadwell.PgPkg.Sdk.*.nupkg --source github --api-key ${{ secrets.GITHUB_TOKEN }}
+```
+
+**3. Consume in a project:**
+
+Add the feed to the consuming project's `nuget.config` and set the `NUGET_AUTH_TOKEN` environment variable (or a Personal Access Token with `read:packages` scope) before running `dotnet restore`.
+
+```powershell
+$env:NUGET_AUTH_TOKEN = "ghp_..."
+dotnet restore
+```
+
+### Azure Artifacts
+
+**1. Install the credential provider:**
+
+```powershell
+iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) }"
+```
+
+**2. Add the feed to `nuget.config`:**
+
+```xml
+<packageSources>
+  <add key="azure" value="https://pkgs.dev.azure.com/<org>/_packaging/<feed>/nuget/v3/index.json" />
+</packageSources>
+```
+
+**3. Authenticate and push:**
+
+```bash
+dotnet nuget push local-feed/Cadwell.PgPkg.Sdk.*.nupkg \
+  --source azure \
+  --api-key az
+```
+
+The Azure Artifacts credential provider handles authentication interactively or via the `SYSTEM_ACCESSTOKEN` variable in Azure Pipelines.
 
 ---
 
