@@ -2,22 +2,20 @@
   <PropertyGroup>
     <CadwellPgPkgSdkPropsImported>true</CadwellPgPkgSdkPropsImported>
 
+    <!--
+      Projects using this SDK must set DefaultTargets="Build" on their <Project> element.
+      MSBuild does not automatically use the first imported target when DefaultTargets is absent;
+      any user-defined target in the project file would otherwise become the default entry point.
+    -->
+
     <!-- MSBuild doesn't define these without Microsoft.NET.Sdk; provide safe defaults -->
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <OutputPath Condition="'$(OutputPath)' == ''">bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">obj\$(Configuration)\</IntermediateOutputPath>
 
-    <!-- Default database name to the MSBuild project name if not set -->
+    <!-- Defaults for user-overridable properties; evaluated early so users can build on them -->
     <DatabaseName Condition="'$(DatabaseName)' == ''">$(MSBuildProjectName)</DatabaseName>
     <Version Condition="'$(Version)' == ''">1.0.0</Version>
-
-    <!-- Output: a .pgpkg file written under OutputPath -->
-    <PgPkgOutputPath Condition="'$(PgPkgOutputPath)' == ''">$(OutputPath)</PgPkgOutputPath>
-    <PgPkgFileName Condition="'$(PgPkgFileName)' == ''">$(MSBuildProjectName)-$(Version).pgpkg</PgPkgFileName>
-    <PgPkgFilePath>$(PgPkgOutputPath)$(PgPkgFileName)</PgPkgFilePath>
-
-    <!-- Schema folder inside the archive -->
-    <PgPkgSchemaRoot>schema/$(DatabaseName)</PgPkgSchemaRoot>
   </PropertyGroup>
 
   <!-- Default glob: any .sql or .pgschema file under the project.

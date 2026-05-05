@@ -1,0 +1,37 @@
+# Default: normalise line endings to LF in the repository
+* text=auto eol=lf
+
+# Windows-specific files that must stay CRLF
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.ps1    text eol=crlf
+*.psm1   text eol=crlf
+*.psd1   text eol=crlf
+
+# Shell scripts must always be LF (bash fails on CRLF)
+*.sh     text eol=lf
+
+# Source files
+*.cs     text eol=lf diff=csharp
+*.csproj text eol=lf
+*.sln    text eol=lf
+*.props  text eol=lf
+*.targets text eol=lf
+*.sql    text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.md     text eol=lf
+
+# Binary files — never diff, never convert
+*.png    binary
+*.jpg    binary
+*.gif    binary
+*.ico    binary
+*.zip    binary
+*.nupkg  binary
+*.snupkg binary
+*.pgpkg  binary
+*.dll    binary
+*.exe    binary
+*.pdb    binary

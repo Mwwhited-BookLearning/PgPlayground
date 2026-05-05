@@ -1,10 +1,10 @@
-<#
+﻿<#
 .SYNOPSIS
     Builds the MyApp.Database pgpkg and deploys it to the local Docker Postgres.
 
 .DESCRIPTION
     1. Starts the Docker stack (if not already running)
-    2. Builds the sample MyApp.Database project — this runs `dotnet ef dbcontext script`
+    2. Builds the sample MyApp.Database project â€” this runs `dotnet ef dbcontext script`
        then packages everything into MyApp.Database-1.0.0.pgpkg
     3. Deploys the package using `pgpkg deploy`
 
@@ -28,7 +28,7 @@ $dbProject = Join-Path $repoRoot 'samples\MyApp.Database\MyApp.Database.pgpkgpro
 $pkgPath   = Join-Path $repoRoot 'samples\MyApp.Database\bin\Debug\net10.0\MyApp.Database-1.0.0.pgpkg'
 $connStr   = 'Host=localhost;Port=5432;Database=myapp;Username=myapp;Password=myapp'
 
-# ── 1. Start Docker stack ─────────────────────────────────────────────────────
+# â”€â”€ 1. Start Docker stack â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (-not $SkipDockerUp) {
     Write-Host "Starting Docker stack..."
     Push-Location $PSScriptRoot
@@ -36,13 +36,13 @@ if (-not $SkipDockerUp) {
     Pop-Location
 }
 
-# ── 2. Build the database package ─────────────────────────────────────────────
+# â”€â”€ 2. Build the database package â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Write-Host ""
 Write-Host "Building MyApp.Database..."
 dotnet build $dbProject
 if ($LASTEXITCODE -ne 0) { throw "dotnet build failed" }
 
-# ── 3. Deploy ─────────────────────────────────────────────────────────────────
+# â”€â”€ 3. Deploy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Write-Host ""
 Write-Host "Deploying $pkgPath..."
 $pgpkgArgs = @('deploy', $pkgPath, '--connection', $connStr)

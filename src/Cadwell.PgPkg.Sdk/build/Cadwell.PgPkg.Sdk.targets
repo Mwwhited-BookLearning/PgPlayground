@@ -1,6 +1,17 @@
 <Project>
   <PropertyGroup>
     <CadwellPgPkgSdkTargetsImported>true</CadwellPgPkgSdkTargetsImported>
+
+    <!--
+      Derived output properties are defined here (in Sdk.targets) so they evaluate AFTER
+      the project file's own <PropertyGroup> blocks.  If they were in Sdk.props, they would
+      capture $(DatabaseName) before the project can override it.
+    -->
+    <PgPkgOutputPath Condition="'$(PgPkgOutputPath)' == ''">$(OutputPath)</PgPkgOutputPath>
+    <PgPkgFileName Condition="'$(PgPkgFileName)' == ''">$(MSBuildProjectName)-$(Version).pgpkg</PgPkgFileName>
+    <PgPkgFilePath>$(PgPkgOutputPath)$(PgPkgFileName)</PgPkgFilePath>
+    <PgPkgSchemaRoot>schema/$(DatabaseName)</PgPkgSchemaRoot>
+
     <_PgPkgStageDir>$(IntermediateOutputPath)pgpkg-stage\</_PgPkgStageDir>
     <_PgPkgSchemaStageDir>$(_PgPkgStageDir)$(PgPkgSchemaRoot)\</_PgPkgSchemaStageDir>
   </PropertyGroup>
@@ -12,7 +23,7 @@
   <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
 
   <!-- ── CollectPgSchema ────────────────────────────────────────────────────── -->
-  <!--  Extension point: other targets run BeforeTargets="CollectPgSchema" to   -->
+  <!--  Extension point: other targets use BeforeTargets="CollectPgSchema" to   -->
   <!--  add dynamically-generated files to @(PgSchema).                         -->
   <Target Name="CollectPgSchema" />
 
@@ -46,7 +57,7 @@
     <Message Text="Package written: $(PgPkgFilePath)" Importance="high" />
   </Target>
 
-  <!-- ── CleanPgPkg ──────────────────────────────────────────────────────── -->
+  <!-- ── Clean ──────────────────────────────────────────────────────── -->
   <Target Name="Clean">
     <Delete Files="$(PgPkgFilePath)" />
     <RemoveDir Directories="$(_PgPkgStageDir)" />
