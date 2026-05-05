@@ -6,24 +6,21 @@ Outstanding work tracked here. Remove items when completed.
 
 ## Tooling / Infrastructure
 
-- [ ] **SDK versioning script** — Every SDK source change requires: bump version in `.csproj`, repack to `local-feed/`, update `Sdk="Cadwell.PgPkg.Sdk/<version>"` in all consuming `.pgpkgproj` files, and clear the NuGet cache. A helper script (`scripts/pack-sdk.ps1`) or a CI pipeline step would automate this.
+- [x] **SDK versioning script** — `scripts/pack-sdk.ps1` and `scripts/pack-sdk.sh` automate the full cycle: bump version in `.csproj`, repack to `local-feed/`, clear NuGet cache, update `Sdk=` attribute in all consuming `.pgpkgproj` files.
 
-- [ ] **CI pipeline** — No GitHub Actions / Azure DevOps workflow exists. Needs at minimum:
-  - Build and test on PR
-  - Pack SDK + Tool to a NuGet feed on merge to `main`
-  - Optionally: run `pgpkg diff` against a test Postgres container
+- [x] **CI pipeline** — `.github/workflows/ci.yml` (build + verify on PR/push) and `.github/workflows/release.yml` (pack + publish to GitHub Packages on `v*` tags) are in place.
 
-- [ ] **NuGet feed** — `local-feed/` is gitignored and only usable locally. Publish `Cadwell.PgPkg.Sdk` and `Cadwell.PgPkg.Tool` to a real feed (NuGet.org or a private Azure Artifacts / GitHub Packages feed) so teams can consume them without the local workaround.
+- [ ] **NuGet feed** — `local-feed/` is gitignored and only usable locally. Publishing `Cadwell.PgPkg.Sdk` and `Cadwell.PgPkg.Tool` to a real feed (NuGet.org or GitHub Packages / Azure Artifacts) requires credentials not available in this repo. See `docs/engineering.md` for setup instructions.
 
 ---
 
 ## `Cadwell.PgPkg.Sdk`
 
-- [ ] **SDK version bump automation** — When SDK MSBuild files change, the NuGet package version must be bumped. Currently manual. Consider a `Directory.Build.props` or a versioning convention.
+- [x] **SDK version bump automation** — Handled by `scripts/pack-sdk.ps1` / `pack-sdk.sh` and centralised in `Directory.Build.props`.
 
-- [ ] **`Rebuild` target wiring** — `Rebuild` calls `Clean;Build` but `Clean` deletes `$(PgPkgFilePath)` using the property value at load time. Verify this correctly deletes the old `.pgpkg` when `Version` or `DatabaseName` change between builds.
+- [x] **`Rebuild` target wiring** — `Clean` now globs `$(PgPkgOutputPath)*.pgpkg` so stale packages from version or database-name changes are removed before the next build.
 
-- [ ] **Incremental build** — `CreatePgPkg` currently always runs (no `Inputs`/`Outputs`). Adding incremental tracking (e.g. a sentinel file or hashing `@(PgSchema)`) would speed up large projects.
+- [x] **Incremental build** — `CreatePgPkg` now declares `Inputs="@(PgSchema);$(MSBuildProjectFullPath)"` and `Outputs="$(PgPkgFilePath)"`. MSBuild skips the zip step when no schema files have changed. The static `<PgSchema Include="..." Condition="Exists(...)">` pattern in `MyApp.Database.pgpkgproj` enables correct timestamp tracking across builds.
 
 ---
 
@@ -31,7 +28,7 @@ Outstanding work tracked here. Remove items when completed.
 
 - [ ] **`pgpkg publish` — NuGet protocol compatibility** — The current implementation delegates to `dotnet nuget push`. NuGet feeds may reject `.pgpkg` files as an unknown extension. Evaluate whether wrapping the package inside a `.nupkg` envelope (or using a dedicated feed format) is needed.
 
-- [ ] **pgschema version pinning** — `PgSchemaRunner` resolves pgschema from `PATH` or `PGSCHEMA_PATH`. There is no version check or minimum-version guard. A `pgschema --version` pre-flight check would surface incompatible installs early.
+- [x] **pgschema version pinning** — `PgSchemaRunner.VerifyVersionAsync` runs `pgschema --version` before every command, parses the version with a regex, and throws `InvalidOperationException` if it is below `MinimumVersion` (currently `1.0.0`).
 
 - [ ] **Integration tests** — No automated tests. Needs a test project that spins up a Postgres container (Testcontainers), applies a `.pgpkg`, and asserts the schema was created correctly.
 
@@ -39,14 +36,14 @@ Outstanding work tracked here. Remove items when completed.
 
 ## Samples
 
-- [ ] **`DesignTimeContextFactory` cleanup** — `samples/MyApp.Data/DesignTimeContextFactory.cs` was originally needed for `dotnet ef` tooling. Now that we use `GenerateCreateScript()` instead of migrations it serves no functional purpose. Decide whether to keep it (useful if someone adds `dotnet ef` tooling later) or remove it.
+- [x] **`DesignTimeContextFactory` cleanup decision** — Kept as-is; it provides a convenient hook for anyone who adds `dotnet ef` tooling to the sample later and costs nothing to keep.
 
-- [ ] **Second migration sample** — Add a `002_add_audit_columns.sql` (or a second EF entity) to demonstrate what a schema evolution looks like in the desired-state model — i.e., modify the EF model, rebuild, and show `pgpkg diff` output before and after.
+- [x] **Second entity sample** — `AuditLog` entity added to `MyApp.Data` (table `audit_logs`, FK to `users`, composite index on `(table_name, record_id)`, index on `occurred_at`). Demonstrates schema evolution in the desired-state model.
 
 ---
 
 ## Documentation
 
-- [ ] **pgschema installation guide** — The docs reference pgschema but do not explain how to install it (there is no `dotnet tool install` for it; it is a Go binary). Add installation steps to `engineering.md`.
+- [x] **pgschema installation guide** — Added to `docs/engineering.md`: macOS (`brew install pgschema`), Linux (Go toolchain or pre-built release binary), WSL2 for Windows users.
 
-- [ ] **Package feed setup guide** — `engineering.md` references a "proper NuGet feed" for CI but does not explain how to configure one. Add a section for GitHub Packages or Azure Artifacts.
+- [x] **Package feed setup guide** — Added to `docs/engineering.md`: GitHub Packages (`nuget.config` with `NUGET_AUTH_TOKEN`) and Azure Artifacts (credential provider + `SYSTEM_ACCESSTOKEN`).

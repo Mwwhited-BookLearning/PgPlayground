@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # The sample .pgpkgproj resolves Cadwell.PgPkg.Sdk from the local-feed/
+      # directory via nuget.config, so we must pack the SDK first.
+      - name: Pack SDK to local feed
+        run: dotnet pack src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj -o local-feed
+
+      - name: Build tool
+        run: dotnet build src/Cadwell.PgPkg.Tool/Cadwell.PgPkg.Tool.csproj
+
+      - name: Build sample database project
+        run: dotnet build samples/MyApp.Database/MyApp.Database.pgpkgproj
+
+      - name: Verify .pgpkg artefact was produced
+        run: |
+          pkg=$(find samples/MyApp.Database/bin -name "*.pgpkg" | head -1)
+          if [ -z "$pkg" ]; then
+            echo "ERROR: no .pgpkg file found in samples/MyApp.Database/bin"
+            exit 1
+          fi
+          echo "Package produced: $pkg"
+          unzip -l "$pkg"

@@ -3,9 +3,8 @@
     <CadwellPgPkgSdkTargetsImported>true</CadwellPgPkgSdkTargetsImported>
 
     <!--
-      Derived output properties are defined here (in Sdk.targets) so they evaluate AFTER
-      the project file's own <PropertyGroup> blocks.  If they were in Sdk.props, they would
-      capture $(DatabaseName) before the project can override it.
+      Derived output properties live here so they evaluate AFTER the project
+      file's own <PropertyGroup> blocks see the user's overrides.
     -->
     <PgPkgOutputPath Condition="'$(PgPkgOutputPath)' == ''">$(OutputPath)</PgPkgOutputPath>
     <PgPkgFileName Condition="'$(PgPkgFileName)' == ''">$(MSBuildProjectName)-$(Version).pgpkg</PgPkgFileName>
@@ -16,20 +15,42 @@
     <_PgPkgSchemaStageDir>$(_PgPkgStageDir)$(PgPkgSchemaRoot)\</_PgPkgSchemaStageDir>
   </PropertyGroup>
 
-  <!-- ── Standard entry-points expected by dotnet build / MSBuild ────────── -->
+  <!-- ── Standard entry-points ─────────────────────────────────────────────── -->
 
   <Target Name="Build" DependsOnTargets="CreatePgPkg" />
 
   <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
 
-  <!-- ── CollectPgSchema ────────────────────────────────────────────────────── -->
-  <!--  Extension point: other targets use BeforeTargets="CollectPgSchema" to   -->
-  <!--  add dynamically-generated files to @(PgSchema).                         -->
+  <!-- ── CollectPgSchema ───────────────────────────────────────────────────── -->
+  <!--  Extension seam: targets using BeforeTargets="CollectPgSchema" may add   -->
+  <!--  dynamically-generated files to @(PgSchema) before CreatePgPkg runs.     -->
   <Target Name="CollectPgSchema" />
 
   <!-- ── CreatePgPkg ──────────────────────────────────────────────────────── -->
-  <!--  Zips all @(PgSchema) items into schema/{DatabaseName}/... inside a .pgpkg -->
-  <Target Name="CreatePgPkg" DependsOnTargets="CollectPgSchema">
+  <!--
+    Incremental build notes
+    ───────────────────────
+    Inputs includes:
+      • @(PgSchema)               — static SQL/pgschema files declared in the project
+      • $(MSBuildProjectFullPath) — triggers rebuild on any project-file change
+                                    (version bump, DatabaseName change, new target, etc.)
+
+    For projects that use a BeforeTargets="CollectPgSchema" generator (e.g.
+    ExtractEfSchema), also add the generated file as a static <PgSchema> item with
+    Condition="Exists(...)" so MSBuild can track it across builds:
+
+        <ItemGroup>
+          <PgSchema Include="$(OutputSqlFile)" Condition="Exists('$(OutputSqlFile)')" />
+        </ItemGroup>
+
+    On the very first build the Condition is false, so CreatePgPkg always runs.
+    On subsequent builds the file exists and MSBuild compares its timestamp to the
+    package output — skipping the zip step when nothing has changed.
+  -->
+  <Target Name="CreatePgPkg"
+          DependsOnTargets="CollectPgSchema"
+          Inputs="@(PgSchema);$(MSBuildProjectFullPath)"
+          Outputs="$(PgPkgFilePath)">
 
     <Message Text="Creating package: $(PgPkgFilePath)" Importance="high" />
 
@@ -38,17 +59,14 @@
     <RemoveDir Directories="$(_PgPkgStageDir)" />
     <MakeDir   Directories="$(_PgPkgSchemaStageDir)" />
 
-    <!-- Copy each schema file, preserving its relative path inside the project -->
     <Copy SourceFiles="%(PgSchema.FullPath)"
           DestinationFiles="$(_PgPkgSchemaStageDir)%(PgSchema.RecursiveDir)%(PgSchema.Filename)%(PgSchema.Extension)"
           SkipUnchangedFiles="true" />
 
-    <!-- Write a manifest so consumers know what database this package targets -->
     <WriteLinesToFile File="$(_PgPkgStageDir)manifest.json"
                       Overwrite="true"
                       Lines='{ "databaseName": "$(DatabaseName)", "version": "$(Version)", "created": "$(MSBuildProjectName)" }' />
 
-    <!-- Delete any stale package then zip the stage directory -->
     <Delete Files="$(PgPkgFilePath)" />
     <ZipDirectory SourceDirectory="$(_PgPkgStageDir)"
                   DestinationFile="$(PgPkgFilePath)"
@@ -57,9 +75,17 @@
     <Message Text="Package written: $(PgPkgFilePath)" Importance="high" />
   </Target>
 
-  <!-- ── Clean ──────────────────────────────────────────────────────── -->
+  <!-- ── Clean ────────────────────────────────────────────────────────────── -->
+  <!--
+    Deletes the current package AND any leftover .pgpkg files from previous
+    versions or DatabaseName values in the same output directory, so a version
+    bump never leaves stale artefacts behind.
+  -->
   <Target Name="Clean">
-    <Delete Files="$(PgPkgFilePath)" />
+    <ItemGroup>
+      <_AllPackages Include="$(PgPkgOutputPath)*.pgpkg" />
+    </ItemGroup>
+    <Delete Files="@(_AllPackages)" />
     <RemoveDir Directories="$(_PgPkgStageDir)" />
   </Target>
 

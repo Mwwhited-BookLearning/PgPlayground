@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Session> Sessions { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany(u => u.Sessions)
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AuditLog>(e =>
+        {
+            e.ToTable("audit_logs");
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Id).HasColumnName("id").UseIdentityByDefaultColumn();
+            e.Property(a => a.UserId).HasColumnName("user_id");
+            e.Property(a => a.Action).HasColumnName("action").IsRequired();
+            e.Property(a => a.TableName).HasColumnName("table_name").IsRequired();
+            e.Property(a => a.RecordId).HasColumnName("record_id");
+            e.Property(a => a.OccurredAt).HasColumnName("occurred_at")
+                .HasDefaultValueSql("now()");
+            e.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(a => new { a.TableName, a.RecordId });
+            e.HasIndex(a => a.OccurredAt);
         });
     }
 }

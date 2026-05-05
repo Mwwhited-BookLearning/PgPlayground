@@ -7,25 +7,33 @@
     <EnableDefaultPgSchemaItems>false</EnableDefaultPgSchemaItems>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <_SchemaScriptProject>$(MSBuildThisFileDirectory)..\MyApp.Data\SchemaScript\SchemaScript.csproj</_SchemaScriptProject>
+    <_EfOutputFile>$(MSBuildThisFileDirectory)schema\001_ef_schema.sql</_EfOutputFile>
+  </PropertyGroup>
+
+  <!--
+    Declare the generated SQL file as a static PgSchema item (with Exists guard).
+    On first build the file does not yet exist so CreatePgPkg always runs.
+    On subsequent builds the file is present and MSBuild compares its timestamp
+    to the .pgpkg output — skipping the zip step when the EF model has not changed.
+  -->
+  <ItemGroup>
+    <PgSchema Include="$(_EfOutputFile)" Condition="Exists('$(_EfOutputFile)')" />
+  </ItemGroup>
+
   <!--
     ExtractEfSchema runs before CreatePgPkg (via CollectPgSchema).
     It builds and runs SchemaScript — a small console app that calls
     DbContext.GenerateCreateScript() — and adds the output SQL to @(PgSchema).
     No EF migration history is required.
   -->
-  <PropertyGroup>
-    <_SchemaScriptProject>$(MSBuildThisFileDirectory)..\MyApp.Data\SchemaScript\SchemaScript.csproj</_SchemaScriptProject>
-    <_EfOutputFile>$(MSBuildThisFileDirectory)schema\001_ef_schema.sql</_EfOutputFile>
-  </PropertyGroup>
-
   <Target Name="ExtractEfSchema" BeforeTargets="CollectPgSchema">
 
-    <!-- Build the schema script generator -->
     <Exec Command="dotnet build &quot;$(_SchemaScriptProject)&quot;" />
 
     <MakeDir Directories="$(MSBuildThisFileDirectory)schema" />
 
-    <!-- Run the generator; it writes the SQL to the output file -->
     <Exec Command="dotnet run --project &quot;$(_SchemaScriptProject)&quot; --no-build -- &quot;$(_EfOutputFile)&quot;" />
 
     <ItemGroup>

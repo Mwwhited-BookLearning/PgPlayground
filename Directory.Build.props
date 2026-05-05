@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Cadwell</Authors>
+    <Company>Cadwell</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/cadwell/PgProj</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/cadwell/PgProj</PackageProjectUrl>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+</Project>
