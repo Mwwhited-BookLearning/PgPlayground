@@ -1,51 +1,46 @@
 <#
 .SYNOPSIS
-    Extracts a PostgreSQL schema from an Entity Framework Core project and
-    stages it so the Cadwell.PgPkg.Sdk build can pick it up.
+    Extracts a PostgreSQL desired-state schema from an Entity Framework Core
+    project and stages it for Cadwell.PgPkg.Sdk.
 
 .DESCRIPTION
-    Runs `dotnet ef dbcontext script` (idempotent migration script) against the
-    target EF project and writes the resulting SQL into the expected pgpkg
-    schema layout:
+    Builds the target EF project, then runs the SchemaScript helper
+    (MyApp.Data\SchemaScript or equivalent) which calls
+    DbContext.GenerateCreateScript() to produce a pure desired-state SQL file.
 
-        <OutputDir>\schema\<DatabaseName>\<MigrationName>.sql
+    Output layout mirrors what pgschema expects:
+        <OutputDir>\schema\<DatabaseName>\001_schema.sql
 
-    The output directory can then be referenced by a .pgpkg project file.
+    No EF migrations are used or required.
 
 .PARAMETER Project
     Path to the EF Core .csproj (or directory containing it).
 
-.PARAMETER StartupProject
-    Optional: path to the startup project (passed to `dotnet ef`).
-
-.PARAMETER Context
-    Optional: DbContext name (passed to `dotnet ef`).
+.PARAMETER SchemaScriptProject
+    Path to the SchemaScript .csproj that wraps GenerateCreateScript().
+    Defaults to <Project>\SchemaScript\SchemaScript.csproj.
 
 .PARAMETER DatabaseName
-    Name of the logical database.  Used as the sub-folder inside schema\.
-    Defaults to the project directory name.
+    Name of the logical database; used as the sub-folder inside schema\.
+    Defaults to the EF project directory name.
 
 .PARAMETER OutputDir
-    Directory to write the staged schema into.
-    Defaults to .\pgpkg-schema next to the EF project.
-
-.PARAMETER Idempotent
-    Generate an idempotent migration script (default: true).
+    Where to write schema\. Defaults to .\pgpkg-schema next to the EF project.
 
 .EXAMPLE
-    .\pgpkg-ef.ps1 -Project .\src\MyApp.Data -DatabaseName myapp
+    .\pgpkg-ef.ps1 -Project .\samples\MyApp.Data -DatabaseName myapp
 
 .EXAMPLE
-    .\pgpkg-ef.ps1 -Project .\src\MyApp.Data -Context AppDbContext -DatabaseName myapp -OutputDir .\deploy\schema
+    .\pgpkg-ef.ps1 -Project .\samples\MyApp.Data `
+                   -SchemaScriptProject .\samples\MyApp.Data\SchemaScript\SchemaScript.csproj `
+                   -DatabaseName myapp -OutputDir .\MyApp.Database\pgpkg-schema
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $Project,
-    [string]               $StartupProject,
-    [string]               $Context,
+    [string]               $SchemaScriptProject,
     [string]               $DatabaseName,
-    [string]               $OutputDir,
-    [bool]                 $Idempotent = $true
+    [string]               $OutputDir
 )
 
 Set-StrictMode -Version Latest
@@ -62,30 +57,28 @@ if (Test-Path $projectPath -PathType Container) {
 $projectDir = Split-Path $projectPath -Parent
 
 # Defaults
+if (-not $SchemaScriptProject) {
+    $SchemaScriptProject = Join-Path $projectDir 'SchemaScript\SchemaScript.csproj'
+}
+if (-not (Test-Path $SchemaScriptProject)) {
+    throw "SchemaScript project not found at '$SchemaScriptProject'. " +
+          "Create a console project that calls DbContext.GenerateCreateScript() and accepts an output path as args[0]."
+}
 if (-not $DatabaseName) { $DatabaseName = Split-Path $projectDir -Leaf }
 if (-not $OutputDir)    { $OutputDir = Join-Path $projectDir 'pgpkg-schema' }
 
 $schemaDir = Join-Path $OutputDir "schema\$DatabaseName"
 New-Item -ItemType Directory -Path $schemaDir -Force | Out-Null
+$outputFile = Join-Path $schemaDir '001_schema.sql'
 
-# Build dotnet ef arguments
-$efArgs = @(
-    'ef', 'dbcontext', 'script',
-    '--project', $projectPath,
-    '--output',  (Join-Path $schemaDir '001_migrations.sql'),
-    '--no-build'
-)
+# Build then run the schema script generator
+Write-Host "Building $SchemaScriptProject..."
+dotnet build $SchemaScriptProject
+if ($LASTEXITCODE -ne 0) { throw "dotnet build failed" }
 
-if ($StartupProject) { $efArgs += '--startup-project', $StartupProject }
-if ($Context)        { $efArgs += '--context', $Context }
-if ($Idempotent)     { $efArgs += '--idempotent' }
-
-Write-Host "Running: dotnet $($efArgs -join ' ')"
-& dotnet @efArgs
-
-if ($LASTEXITCODE -ne 0) {
-    throw "dotnet ef exited with code $LASTEXITCODE"
-}
+Write-Host "Generating schema SQL..."
+dotnet run --project $SchemaScriptProject --no-build -- $outputFile
+if ($LASTEXITCODE -ne 0) { throw "SchemaScript failed" }
 
 Write-Host ""
 Write-Host "Schema staged to: $schemaDir"

@@ -31,16 +31,35 @@ schema/
 
 ## MSBuild SDK — `Cadwell.PgPkg.Sdk`
 
+### Important: `DefaultTargets="Build"` is required
+
+Projects using this SDK **must** set `DefaultTargets="Build"` on the `<Project>` element:
+
+```xml
+<Project Sdk="Cadwell.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
+```
+
+Without it, MSBuild will use the first target defined in the project file (typically a custom user target like `ExtractEfSchema`) as the entry point instead of `Build`. This is a consequence of not importing `Microsoft.NET.Sdk` — the standard SDK sets this up implicitly.
+
 ### Properties
 
-| Property | Default | Description |
-|----------|---------|-------------|
-| `DatabaseName` | `$(MSBuildProjectName)` | Logical database name; becomes the sub-folder in the archive |
-| `Version` | `1.0.0` | Package version |
-| `PgPkgOutputPath` | `$(OutputPath)` | Directory where the `.pgpkg` is written |
-| `PgPkgFileName` | `$(MSBuildProjectName)-$(Version).pgpkg` | Output file name |
-| `PgPkgFilePath` | derived | Full path to the output package |
-| `PgPkgSchemaRoot` | `schema/$(DatabaseName)` | Archive-internal path prefix |
+| Property | Default | Evaluated in | Description |
+|----------|---------|-------------|-------------|
+| `DatabaseName` | `$(MSBuildProjectName)` | `Sdk.props` | Logical database name; becomes the sub-folder in the archive |
+| `Version` | `1.0.0` | `Sdk.props` | Package version |
+| `Configuration` | `Debug` | `Sdk.props` | Build configuration |
+| `OutputPath` | `bin\$(Configuration)\` | `Sdk.props` | Output directory for the `.pgpkg` file |
+| `IntermediateOutputPath` | `obj\$(Configuration)\` | `Sdk.props` | Intermediate staging directory |
+| `PgPkgOutputPath` | `$(OutputPath)` | `Sdk.targets` | Directory where the `.pgpkg` is written |
+| `PgPkgFileName` | `$(MSBuildProjectName)-$(Version).pgpkg` | `Sdk.targets` | Output file name |
+| `PgPkgFilePath` | derived | `Sdk.targets` | Full path to the output package |
+| `PgPkgSchemaRoot` | `schema/$(DatabaseName)` | `Sdk.targets` | Archive-internal path prefix |
+
+> **Why are derived properties in `Sdk.targets` and not `Sdk.props`?**  
+> `Sdk.props` is evaluated before the project file's own `<PropertyGroup>` blocks.
+> If `PgPkgSchemaRoot` were defined there, it would capture `$(DatabaseName)` before the
+> user's `<DatabaseName>myapp</DatabaseName>` override is applied.
+> `Sdk.targets` evaluates after the project file, so it sees the final resolved values.
 
 ### Items
 
@@ -48,13 +67,18 @@ schema/
 |------|-------------|-------------|
 | `PgSchema` | `**\*.sql;**\*.pgschema` | Files staged into the package; preserves `RecursiveDir` inside archive |
 
+Set `EnableDefaultPgSchemaItems=false` to disable the default glob (e.g. when a target generates the schema files dynamically).
+
 ### Targets
 
-| Target | Runs After | Description |
+| Target | Called By | Description |
 |--------|-----------|-------------|
-| `CreatePgPkg` | `Build` | Stages files, writes manifest, zips to `.pgpkg`; incremental (input/output tracked) |
-| `CleanPgPkg` | `Clean` | Deletes the `.pgpkg` and the intermediate stage directory |
-| `GetPgPkgOutputPath` | — | Returns `$(PgPkgFilePath)` for other tooling to consume |
+| `Build` | Default entry point | Depends on `CreatePgPkg` |
+| `Rebuild` | Explicit | Runs `Clean` then `Build` |
+| `CollectPgSchema` | `CreatePgPkg` (via DependsOnTargets) | Extension seam; other targets use `BeforeTargets="CollectPgSchema"` to inject dynamically-generated files into `@(PgSchema)` |
+| `CreatePgPkg` | `Build` (via DependsOnTargets) | Stages files, writes manifest, zips to `.pgpkg` |
+| `Clean` | Explicit | Deletes the `.pgpkg` and the intermediate stage directory |
+| `GetPgPkgOutputPath` | Tooling | Returns `$(PgPkgFilePath)` |
 
 ### Intermediate staging
 
@@ -111,31 +135,53 @@ Exits non-zero if pgschema reports differences.
 
 Available as `pgpkg-ef.ps1` (Windows PowerShell) and `pgpkg-ef.sh` (bash).
 
-Both scripts:
+### Design: no migrations
 
-1. Resolve the `.csproj` path
-2. Run `dotnet ef dbcontext script --output <schemaDir>/001_migrations.sql --no-build [--idempotent]`
-3. Print the `<PgSchema Include="...">` snippet to add to the `.pgpkgproj`
+`pgpkg-ef` drives a `SchemaScript` console app — a thin wrapper around `DbContext.GenerateCreateScript()` — rather than using `dotnet ef migrations`. This produces a single, complete desired-state SQL file that reflects the current EF model without any migration history dependency.
 
-The `--idempotent` flag (default on) tells EF to emit `IF NOT EXISTS` guards, making the script safe to replay — matching the desired-state philosophy.
+### SchemaScript pattern
+
+```csharp
+// SchemaScript/Program.cs
+var opts = new DbContextOptionsBuilder<AppDbContext>()
+    .UseNpgsql("Host=localhost;Database=design_time_only")
+    .Options;
+await using var ctx = new AppDbContext(opts);
+var sql = ctx.Database.GenerateCreateScript();
+await File.WriteAllTextAsync(args[0], sql);
+```
+
+No connection to a real database is made; the Npgsql provider generates DDL from the EF model metadata alone.
 
 ### Workflow when combining EF Core + pgpkg
 
 ```
-EF Core project   ──(pgpkg-ef)──►  staged SQL files
-                                        │
-                                        ▼
-                               MyApp.Database.pgpkgproj
-                                        │
-                               dotnet build
-                                        │
-                                        ▼
-                               MyApp.Database-1.0.0.pgpkg
-                                        │
-                               pgpkg deploy -c $CONN_STR
-                                        │
-                                        ▼
-                                  PostgreSQL server
+EF Core project
+  └── SchemaScript  ──(pgpkg-ef or ExtractEfSchema target)──►  001_schema.sql
+                                                                      │
+                                                           MyApp.Database.pgpkgproj
+                                                                      │
+                                                              dotnet build
+                                                                      │
+                                                              *.pgpkg artefact
+                                                                      │
+                                                           pgpkg deploy -c $CONN_STR
+                                                                      │
+                                                            PostgreSQL server
+```
+
+### Integrating directly into the MSBuild build
+
+Rather than running `pgpkg-ef` manually, the `ExtractEfSchema` target in a `.pgpkgproj` achieves the same result automatically on every `dotnet build`:
+
+```xml
+<Target Name="ExtractEfSchema" BeforeTargets="CollectPgSchema">
+  <Exec Command="dotnet build &quot;$(SchemaScriptProject)&quot;" />
+  <Exec Command="dotnet run --project &quot;$(SchemaScriptProject)&quot; --no-build -- &quot;$(OutputSqlFile)&quot;" />
+  <ItemGroup>
+    <PgSchema Include="$(OutputSqlFile)" />
+  </ItemGroup>
+</Target>
 ```
 
 ---
@@ -146,4 +192,6 @@ EF Core project   ──(pgpkg-ef)──►  staged SQL files
 |---------|---------|-------|
 | `System.CommandLine` | `2.0.0-beta4.22272.1` | CLI framework for `pgpkg` tool |
 | `Npgsql` | `9.0.3` | Available for future direct Postgres operations |
+| `Microsoft.EntityFrameworkCore` | `9.0.4` | Sample EF project |
+| `Npgsql.EntityFrameworkCore.PostgreSQL` | `9.0.4` | Sample EF project |
 | `net10.0` | TFM | All projects target .NET 10 |
