@@ -1,10 +1,13 @@
 services:
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: pgproj-postgres
     restart: unless-stopped
     environment:
+      # postgres:18 moved PGDATA to a version-namespaced path by default;
+      # pin it back so the existing volume mount below still works.
+      PGDATA: /var/lib/postgresql/data
       POSTGRES_USER: ${POSTGRES_USER:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
@@ -17,7 +20,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
       interval: 5s
       timeout: 5s
       retries: 10

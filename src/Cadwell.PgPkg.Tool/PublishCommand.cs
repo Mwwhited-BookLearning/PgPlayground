@@ -29,8 +29,12 @@ internal static class PublishCommand
             if (!pkg.Exists)
                 throw new FileNotFoundException($"Package not found: {pkg.FullName}");
 
-            // Local directory feed
-            if (Directory.Exists(source) || !Uri.TryCreate(source, UriKind.Absolute, out _))
+            // Local directory feed. A local path (existing or not) still parses as a valid
+            // absolute file:// URI, so only http(s) counts as a remote feed.
+            var isRemote = Uri.TryCreate(source, UriKind.Absolute, out var sourceUri)
+                && (sourceUri.Scheme == Uri.UriSchemeHttp || sourceUri.Scheme == Uri.UriSchemeHttps);
+
+            if (!isRemote)
             {
                 var dest = Path.Combine(source, pkg.Name);
                 Directory.CreateDirectory(source);

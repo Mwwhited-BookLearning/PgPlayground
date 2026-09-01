@@ -26,7 +26,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot  = Resolve-Path (Join-Path $PSScriptRoot '..')
 $dbProject = Join-Path $repoRoot 'samples\MyApp.Database\MyApp.Database.pgpkgproj'
-$pkgPath   = Join-Path $repoRoot 'samples\MyApp.Database\bin\Debug\net10.0\MyApp.Database-1.0.0.pgpkg'
+$pkgPath   = Join-Path $repoRoot 'samples\MyApp.Database\bin\Debug\MyApp.Database-1.0.0.pgpkg'
 
 # ── 1. Load .env ──────────────────────────────────────────────────────────────
 $envFile     = Join-Path $PSScriptRoot '.env'

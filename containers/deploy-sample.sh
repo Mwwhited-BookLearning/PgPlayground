@@ -20,7 +20,7 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DB_PROJECT="$REPO_ROOT/samples/MyApp.Database/MyApp.Database.pgpkgproj"
-PKG_PATH="$REPO_ROOT/samples/MyApp.Database/bin/Debug/net10.0/MyApp.Database-1.0.0.pgpkg"
+PKG_PATH="$REPO_ROOT/samples/MyApp.Database/bin/Debug/MyApp.Database-1.0.0.pgpkg"
 
 # ── 1. Load .env ──────────────────────────────────────────────────────────────
 ENV_FILE="$SCRIPT_DIR/.env"
