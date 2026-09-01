@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Text.Json;
 
-namespace Cadwell.PgPkg.Tool;
+namespace OoBDev.PgPkg.Tool;
 
 internal sealed record PgPkgManifest(string DatabaseName, string Version, string Created);
 

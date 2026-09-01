@@ -1,7 +1,7 @@
 using System.CommandLine;
-using Cadwell.PgPkg.Tool;
+using OoBDev.PgPkg.Tool;
 
-namespace Cadwell.PgPkg.Tool.Tests;
+namespace OoBDev.PgPkg.Tool.Tests;
 
 public sealed class PublishCommandTests : IDisposable
 {

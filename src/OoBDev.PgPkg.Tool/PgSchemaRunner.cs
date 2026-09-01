@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace Cadwell.PgPkg.Tool;
+namespace OoBDev.PgPkg.Tool;
 
 /// <summary>
 /// Locates and invokes the pgschema binary.

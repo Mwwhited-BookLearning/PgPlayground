@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Extracts a PostgreSQL desired-state schema from an Entity Framework Core
-    project and stages it for Cadwell.PgPkg.Sdk.
+    project and stages it for OoBDev.PgPkg.Sdk.
 
 .DESCRIPTION
     Builds the target EF project, then runs the SchemaScript helper

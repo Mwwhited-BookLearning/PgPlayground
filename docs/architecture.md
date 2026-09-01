@@ -41,8 +41,8 @@ title PgProj — Containers
 Person(dev, "Developer / CI Agent")
 
 System_Boundary(pgproj, "PgProj Toolchain") {
-    Container(sdk,          "Cadwell.PgPkg.Sdk",   "MSBuild SDK (NuGet)",   "Defines .pgpkgproj project type; zips schema files into .pgpkg during dotnet build")
-    Container(tool,         "Cadwell.PgPkg.Tool",  ".NET Tool (pgpkg CLI)", "deploy / diff / publish commands")
+    Container(sdk,          "OoBDev.PgPkg.Sdk",   "MSBuild SDK (NuGet)",   "Defines .pgpkgproj project type; zips schema files into .pgpkg during dotnet build")
+    Container(tool,         "OoBDev.PgPkg.Tool",  ".NET Tool (pgpkg CLI)", "deploy / diff / publish commands")
     Container(eftool,       "pgpkg-ef",            "Shell Script (ps1/sh)", "Drives SchemaScript to extract GenerateCreateScript() DDL from any EF DbContext")
     Container(schemaScript, "SchemaScript",        ".NET Console App",      "Thin wrapper: builds DbContext, calls GenerateCreateScript(), writes SQL file")
 }
@@ -69,15 +69,15 @@ Rel(schemaScript, sdk,          "Produces SQL files consumed by .pgpkgproj")
 
 ---
 
-## Level 3 — Component: Cadwell.PgPkg.Tool
+## Level 3 — Component: OoBDev.PgPkg.Tool
 
 ```plantuml
 @startuml C4_Component_Tool
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-title Cadwell.PgPkg.Tool — Components
+title OoBDev.PgPkg.Tool — Components
 
-Container_Boundary(tool, "Cadwell.PgPkg.Tool (pgpkg CLI)") {
+Container_Boundary(tool, "OoBDev.PgPkg.Tool (pgpkg CLI)") {
     Component(prog,    "Program",         "Top-level command registration")
     Component(deploy,  "DeployCommand",   "Extracts .pgpkg, invokes pgschema apply")
     Component(diff,    "DiffCommand",     "Extracts .pgpkg, invokes pgschema diff")
@@ -112,7 +112,7 @@ Rel(publish, nuget,   "pushes to")
 @startuml C4_Component_SDK
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-title Cadwell.PgPkg.Sdk — MSBuild Target Flow
+title OoBDev.PgPkg.Sdk — MSBuild Target Flow
 
 Container_Boundary(sdk, "MSBuild build of a .pgpkgproj") {
     Component(build,          "Build target",          "Entry point — DependsOnTargets: CreatePgPkg")

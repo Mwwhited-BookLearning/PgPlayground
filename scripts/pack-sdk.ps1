@@ -18,9 +18,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..')
-$sdkCsproj  = Join-Path $repoRoot 'src\Cadwell.PgPkg.Sdk\Cadwell.PgPkg.Sdk.csproj'
+$sdkCsproj  = Join-Path $repoRoot 'src\OoBDev.PgPkg.Sdk\OoBDev.PgPkg.Sdk.csproj'
 $localFeed  = Join-Path $repoRoot 'local-feed'
-$nugetCache = Join-Path $env:USERPROFILE '.nuget\packages\cadwell.pgpkg.sdk'
+$nugetCache = Join-Path $env:USERPROFILE '.nuget\packages\oobdev.pgpkg.sdk'
 
 # ── 1. Bump version in SDK .csproj ───────────────────────────────────────────
 Write-Host "Updating $sdkCsproj → $Version"
@@ -45,10 +45,10 @@ $projects = Get-ChildItem $repoRoot -Recurse -Filter '*.pgpkgproj' |
 
 foreach ($proj in $projects) {
     $xml = Get-Content $proj.FullName -Raw
-    if ($xml -match 'Sdk="Cadwell\.PgPkg\.Sdk/([^"]+)"') {
+    if ($xml -match 'Sdk="OoBDev\.PgPkg\.Sdk/([^"]+)"') {
         $oldVer = $Matches[1]
-        $xml = $xml -replace "Sdk=`"Cadwell\.PgPkg\.Sdk/$([regex]::Escape($oldVer))`"",
-                              "Sdk=`"Cadwell.PgPkg.Sdk/$Version`""
+        $xml = $xml -replace "Sdk=`"OoBDev\.PgPkg\.Sdk/$([regex]::Escape($oldVer))`"",
+                              "Sdk=`"OoBDev.PgPkg.Sdk/$Version`""
         Set-Content $proj.FullName $xml -Encoding utf8
         Write-Host "Updated $($proj.Name): $oldVer → $Version"
     }

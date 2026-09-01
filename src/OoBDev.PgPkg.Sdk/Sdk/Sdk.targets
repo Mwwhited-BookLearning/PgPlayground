@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\build\OoBDev.PgPkg.Sdk.targets"
+          Condition="'$(OoBDevPgPkgSdkTargetsImported)' != 'true'" />
+</Project>

@@ -75,7 +75,7 @@ PgProj/
 ├── nuget.config                   ← points at local-feed/ for SDK development
 ├── local-feed/                    ← packed NuGet packages (not committed — see .gitignore)
 ├── containers/
-│   ├── docker-compose.yml         ← Postgres 17 + pgAdmin 4
+│   ├── docker-compose.yml         ← Postgres 18 + pgAdmin 4
 │   ├── pgadmin/servers.json       ← pre-wired pgAdmin server connection
 │   ├── scripts/00_create_database.sql
 │   ├── deploy-sample.ps1          ← one-shot: up containers, build, deploy
@@ -98,23 +98,23 @@ PgProj/
 │       ├── MyApp.Database.pgpkgproj
 │       └── schema/                ← 001_ef_schema.sql generated here (gitignored)
 └── src/
-    ├── Cadwell.PgPkg.Sdk/
+    ├── OoBDev.PgPkg.Sdk/
     │   ├── Sdk/
     │   │   ├── Sdk.props          ← MSBuild SDK entry-point (imported before project)
     │   │   └── Sdk.targets        ← MSBuild SDK entry-point (imported after project)
     │   ├── build/
-    │   │   ├── Cadwell.PgPkg.Sdk.props    ← default properties & item globs
-    │   │   └── Cadwell.PgPkg.Sdk.targets  ← Build/Clean/CreatePgPkg/CollectPgSchema
-    │   └── Cadwell.PgPkg.Sdk.csproj
-    ├── Cadwell.PgPkg.Tool/
+    │   │   ├── OoBDev.PgPkg.Sdk.props    ← default properties & item globs
+    │   │   └── OoBDev.PgPkg.Sdk.targets  ← Build/Clean/CreatePgPkg/CollectPgSchema
+    │   └── OoBDev.PgPkg.Sdk.csproj
+    ├── OoBDev.PgPkg.Tool/
     │   ├── Program.cs
     │   ├── DeployCommand.cs
     │   ├── DiffCommand.cs
     │   ├── PublishCommand.cs
     │   ├── PgPkgPackage.cs
     │   ├── PgSchemaRunner.cs
-    │   └── Cadwell.PgPkg.Tool.csproj
-    └── Cadwell.PgPkg.EfTool/
+    │   └── OoBDev.PgPkg.Tool.csproj
+    └── OoBDev.PgPkg.EfTool/
         ├── pgpkg-ef.ps1           ← drives SchemaScript (Windows PowerShell)
         └── pgpkg-ef.sh            ← drives SchemaScript (bash)
 ```
@@ -135,16 +135,16 @@ dotnet build samples\MyApp.Database\MyApp.Database.pgpkgproj
 
 ## SDK Development Workflow
 
-When you change `Cadwell.PgPkg.Sdk` source files, you must repack and clear the NuGet cache before consuming projects pick up the changes:
+When you change `OoBDev.PgPkg.Sdk` source files, you must repack and clear the NuGet cache before consuming projects pick up the changes:
 
 ```powershell
-# 1. Bump the version in Cadwell.PgPkg.Sdk.csproj and in the sample .pgpkgproj Sdk= attribute
+# 1. Bump the version in OoBDev.PgPkg.Sdk.csproj and in the sample .pgpkgproj Sdk= attribute
 
 # 2. Repack
-dotnet pack src\Cadwell.PgPkg.Sdk\Cadwell.PgPkg.Sdk.csproj -o local-feed --no-build
+dotnet pack src\OoBDev.PgPkg.Sdk\OoBDev.PgPkg.Sdk.csproj -o local-feed --no-build
 
 # 3. Clear the cached version
-Remove-Item "$env:USERPROFILE\.nuget\packages\cadwell.pgpkg.sdk\<old-version>" -Recurse -Force
+Remove-Item "$env:USERPROFILE\.nuget\packages\oobdev.pgpkg.sdk\<old-version>" -Recurse -Force
 
 # 4. Rebuild the sample
 dotnet build samples\MyApp.Database\MyApp.Database.pgpkgproj
@@ -157,8 +157,8 @@ dotnet build samples\MyApp.Database\MyApp.Database.pgpkgproj
 ## Installing the `pgpkg` tool locally
 
 ```powershell
-dotnet pack src\Cadwell.PgPkg.Tool\Cadwell.PgPkg.Tool.csproj -o local-feed
-dotnet tool install --global Cadwell.PgPkg.Tool --add-source .\local-feed
+dotnet pack src\OoBDev.PgPkg.Tool\OoBDev.PgPkg.Tool.csproj -o local-feed
+dotnet tool install --global OoBDev.PgPkg.Tool --add-source .\local-feed
 pgpkg --help
 ```
 
@@ -166,7 +166,7 @@ pgpkg --help
 
 ## Configuring a NuGet package feed
 
-`local-feed/` is gitignored and only usable on the machine where you ran `pack-sdk.ps1`. For team use or CI, publish `Cadwell.PgPkg.Sdk` and `Cadwell.PgPkg.Tool` to a real NuGet feed.
+`local-feed/` is gitignored and only usable on the machine where you ran `pack-sdk.ps1`. For team use or CI, publish `OoBDev.PgPkg.Sdk` and `OoBDev.PgPkg.Tool` to a real NuGet feed.
 
 ### GitHub Packages
 
@@ -195,7 +195,7 @@ The `.github/workflows/release.yml` workflow already does this on `v*` tags:
 
 ```yaml
 - name: Publish SDK
-  run: dotnet nuget push local-feed/Cadwell.PgPkg.Sdk.*.nupkg --source github --api-key ${{ secrets.GITHUB_TOKEN }}
+  run: dotnet nuget push local-feed/OoBDev.PgPkg.Sdk.*.nupkg --source github --api-key ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **3. Consume in a project:**
@@ -226,7 +226,7 @@ iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) }"
 **3. Authenticate and push:**
 
 ```bash
-dotnet nuget push local-feed/Cadwell.PgPkg.Sdk.*.nupkg \
+dotnet nuget push local-feed/OoBDev.PgPkg.Sdk.*.nupkg \
   --source azure \
   --api-key az
 ```
@@ -265,7 +265,7 @@ If you have an EF Core project with a `SchemaScript` sub-project, use `pgpkg-ef`
 
 ```powershell
 # Windows
-.\src\Cadwell.PgPkg.EfTool\pgpkg-ef.ps1 `
+.\src\OoBDev.PgPkg.EfTool\pgpkg-ef.ps1 `
     -Project .\samples\MyApp.Data `
     -DatabaseName myapp `
     -OutputDir .\samples\MyApp.Database\pgpkg-schema
@@ -273,7 +273,7 @@ If you have an EF Core project with a `SchemaScript` sub-project, use `pgpkg-ef`
 
 ```bash
 # Linux / macOS
-./src/Cadwell.PgPkg.EfTool/pgpkg-ef.sh ./samples/MyApp.Data \
+./src/OoBDev.PgPkg.EfTool/pgpkg-ef.sh ./samples/MyApp.Data \
     --database-name myapp \
     --output-dir ./samples/MyApp.Database/pgpkg-schema
 ```
@@ -293,7 +293,7 @@ See `samples/MyApp.Data/SchemaScript/Program.cs` for the reference implementatio
 
 ## Adding a new pgschema command
 
-1. Add a new `XyzCommand.cs` in `Cadwell.PgPkg.Tool/` following the pattern in `DeployCommand.cs`.
+1. Add a new `XyzCommand.cs` in `OoBDev.PgPkg.Tool/` following the pattern in `DeployCommand.cs`.
 2. Register it in `Program.cs`: `rootCommand.AddCommand(XyzCommand.Build());`.
 3. Map new options to `pgschema` arguments inside `PgSchemaRunner.RunAsync`.
 

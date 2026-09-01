@@ -14,9 +14,9 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SDK_CSPROJ="$REPO_ROOT/src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj"
+SDK_CSPROJ="$REPO_ROOT/src/OoBDev.PgPkg.Sdk/OoBDev.PgPkg.Sdk.csproj"
 LOCAL_FEED="$REPO_ROOT/local-feed"
-NUGET_CACHE="${HOME}/.nuget/packages/cadwell.pgpkg.sdk"
+NUGET_CACHE="${HOME}/.nuget/packages/oobdev.pgpkg.sdk"
 
 # 1. Bump version in SDK .csproj
 echo "Updating $SDK_CSPROJ → $VERSION"
@@ -34,9 +34,9 @@ fi
 
 # 4. Update Sdk= attribute in all .pgpkgproj files
 while IFS= read -r -d '' proj; do
-  old=$(grep -oP 'Sdk="Cadwell\.PgPkg\.Sdk/\K[^"]+' "$proj" || true)
+  old=$(grep -oP 'Sdk="OoBDev\.PgPkg\.Sdk/\K[^"]+' "$proj" || true)
   if [[ -n "$old" ]]; then
-    sed -i "s|Sdk=\"Cadwell\.PgPkg\.Sdk/$old\"|Sdk=\"Cadwell.PgPkg.Sdk/$VERSION\"|g" "$proj"
+    sed -i "s|Sdk=\"OoBDev\.PgPkg\.Sdk/$old\"|Sdk=\"OoBDev.PgPkg.Sdk/$VERSION\"|g" "$proj"
     echo "Updated $(basename "$proj"): $old → $VERSION"
   fi
 done < <(find "$REPO_ROOT" \

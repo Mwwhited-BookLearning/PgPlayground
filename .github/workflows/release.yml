@@ -29,13 +29,13 @@ jobs:
 
       - name: Pack SDK
         run: |
-          dotnet pack src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj \
+          dotnet pack src/OoBDev.PgPkg.Sdk/OoBDev.PgPkg.Sdk.csproj \
             -o nupkgs \
             -p:Version=${{ steps.version.outputs.version }}
 
       - name: Pack Tool
         run: |
-          dotnet pack src/Cadwell.PgPkg.Tool/Cadwell.PgPkg.Tool.csproj \
+          dotnet pack src/OoBDev.PgPkg.Tool/OoBDev.PgPkg.Tool.csproj \
             -o nupkgs \
             -p:Version=${{ steps.version.outputs.version }}
 

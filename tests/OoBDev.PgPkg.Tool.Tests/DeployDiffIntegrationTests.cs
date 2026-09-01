@@ -2,7 +2,7 @@ using System.CommandLine;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
-namespace Cadwell.PgPkg.Tool.Tests;
+namespace OoBDev.PgPkg.Tool.Tests;
 
 /// <summary>
 /// End-to-end: deploy a built .pgpkg into a real Postgres container via pgschema,
@@ -25,7 +25,7 @@ public sealed class DeployDiffIntegrationTests : IAsyncLifetime
 
         await TestSupport.RunAsync("dotnet", [
             "pack",
-            Path.Combine(TestSupport.RepoRoot, "src", "Cadwell.PgPkg.Sdk", "Cadwell.PgPkg.Sdk.csproj"),
+            Path.Combine(TestSupport.RepoRoot, "src", "OoBDev.PgPkg.Sdk", "OoBDev.PgPkg.Sdk.csproj"),
             "-o", Path.Combine(TestSupport.RepoRoot, "local-feed"),
         ]);
 

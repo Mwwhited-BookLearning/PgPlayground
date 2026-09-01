@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 
-namespace Cadwell.PgPkg.Tool;
+namespace OoBDev.PgPkg.Tool;
 
 /// <summary>
 /// pgpkg diff — show the schema diff between a .pgpkg and a live database without applying.

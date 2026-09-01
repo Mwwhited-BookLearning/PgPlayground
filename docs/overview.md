@@ -27,8 +27,8 @@ PgProj brings the same workflow to PostgreSQL by combining:
 
 | Component | Type | Purpose |
 |-----------|------|---------|
-| `Cadwell.PgPkg.Sdk` | MSBuild SDK NuGet package | Defines the `.pgpkgproj` project type; produces `.pgpkg` zip artefacts on `dotnet build` |
-| `Cadwell.PgPkg.Tool` (`pgpkg`) | .NET global/local tool | Deploys, diffs, and publishes `.pgpkg` packages |
+| `OoBDev.PgPkg.Sdk` | MSBuild SDK NuGet package | Defines the `.pgpkgproj` project type; produces `.pgpkg` zip artefacts on `dotnet build` |
+| `OoBDev.PgPkg.Tool` (`pgpkg`) | .NET global/local tool | Deploys, diffs, and publishes `.pgpkg` packages |
 | `pgpkg-ef` (`.ps1` / `.sh`) | Shell scripts | Drives a `SchemaScript` helper to extract `GenerateCreateScript()` DDL from any EF Core DbContext |
 
 ### EF Core Schema Extraction — No Migrations Required

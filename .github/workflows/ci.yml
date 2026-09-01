@@ -19,13 +19,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # The sample .pgpkgproj resolves Cadwell.PgPkg.Sdk from the local-feed/
+      # The sample .pgpkgproj resolves OoBDev.PgPkg.Sdk from the local-feed/
       # directory via nuget.config, so we must pack the SDK first.
       - name: Pack SDK to local feed
-        run: dotnet pack src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj -o local-feed
+        run: dotnet pack src/OoBDev.PgPkg.Sdk/OoBDev.PgPkg.Sdk.csproj -o local-feed
 
       - name: Build tool
-        run: dotnet build src/Cadwell.PgPkg.Tool/Cadwell.PgPkg.Tool.csproj
+        run: dotnet build src/OoBDev.PgPkg.Tool/OoBDev.PgPkg.Tool.csproj
 
       - name: Build sample database project
         run: dotnet build samples/MyApp.Database/MyApp.Database.pgpkgproj

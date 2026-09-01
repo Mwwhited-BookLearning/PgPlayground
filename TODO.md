@@ -10,11 +10,11 @@ Outstanding work tracked here. Remove items when completed.
 
 - [x] **CI pipeline** — `.github/workflows/ci.yml` (build + verify on PR/push) and `.github/workflows/release.yml` (pack + publish to GitHub Packages on `v*` tags) are in place.
 
-- [ ] **NuGet feed** — `local-feed/` is gitignored and only usable locally. Publishing `Cadwell.PgPkg.Sdk` and `Cadwell.PgPkg.Tool` to a real feed (NuGet.org or GitHub Packages / Azure Artifacts) requires credentials not available in this repo. See `docs/engineering.md` for setup instructions.
+- [ ] **NuGet feed** — `local-feed/` is gitignored and only usable locally. Publishing `OoBDev.PgPkg.Sdk` and `OoBDev.PgPkg.Tool` to a real feed (NuGet.org or GitHub Packages / Azure Artifacts) requires credentials not available in this repo. See `docs/engineering.md` for setup instructions.
 
 ---
 
-## `Cadwell.PgPkg.Sdk`
+## `OoBDev.PgPkg.Sdk`
 
 - [x] **SDK version bump automation** — Handled by `scripts/pack-sdk.ps1` / `pack-sdk.sh` and centralised in `Directory.Build.props`.
 
@@ -24,7 +24,7 @@ Outstanding work tracked here. Remove items when completed.
 
 ---
 
-## `Cadwell.PgPkg.Tool`
+## `OoBDev.PgPkg.Tool`
 
 - [ ] **`pgpkg publish` — NuGet protocol compatibility** — The current implementation delegates to `dotnet nuget push`. NuGet feeds may reject `.pgpkg` files as an unknown extension. Evaluate whether wrapping the package inside a `.nupkg` envelope (or using a dedicated feed format) is needed.
 

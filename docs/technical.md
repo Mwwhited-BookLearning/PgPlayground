@@ -29,14 +29,14 @@ schema/
 
 ---
 
-## MSBuild SDK — `Cadwell.PgPkg.Sdk`
+## MSBuild SDK — `OoBDev.PgPkg.Sdk`
 
 ### Important: `DefaultTargets="Build"` is required
 
 Projects using this SDK **must** set `DefaultTargets="Build"` on the `<Project>` element:
 
 ```xml
-<Project Sdk="Cadwell.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
+<Project Sdk="OoBDev.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
 ```
 
 Without it, MSBuild will use the first target defined in the project file (typically a custom user target like `ExtractEfSchema`) as the entry point instead of `Build`. This is a consequence of not importing `Microsoft.NET.Sdk` — the standard SDK sets this up implicitly.
@@ -92,7 +92,7 @@ This preserves the original relative directory structure and gives MSBuild a cle
 
 ---
 
-## CLI — `pgpkg` (`Cadwell.PgPkg.Tool`)
+## CLI — `pgpkg` (`OoBDev.PgPkg.Tool`)
 
 Built with `System.CommandLine` beta4.
 

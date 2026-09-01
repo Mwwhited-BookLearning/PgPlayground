@@ -1,4 +1,4 @@
-<Project Sdk="Cadwell.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
+<Project Sdk="OoBDev.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
 
   <PropertyGroup>
     <DatabaseName>myapp</DatabaseName>

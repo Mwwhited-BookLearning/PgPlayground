@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <CadwellPgPkgSdkPropsImported>true</CadwellPgPkgSdkPropsImported>
+    <OoBDevPgPkgSdkPropsImported>true</OoBDevPgPkgSdkPropsImported>
 
     <!--
       Projects using this SDK must set DefaultTargets="Build" on their <Project> element.

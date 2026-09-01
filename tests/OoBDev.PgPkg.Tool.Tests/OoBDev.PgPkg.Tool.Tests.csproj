@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Cadwell.PgPkg.Tool\Cadwell.PgPkg.Tool.csproj" />
+    <ProjectReference Include="..\..\src\OoBDev.PgPkg.Tool\OoBDev.PgPkg.Tool.csproj" />
   </ItemGroup>
 
 </Project>

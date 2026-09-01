@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <CadwellPgPkgSdkTargetsImported>true</CadwellPgPkgSdkTargetsImported>
+    <OoBDevPgPkgSdkTargetsImported>true</OoBDevPgPkgSdkTargetsImported>
 
     <!--
       Derived output properties live here so they evaluate AFTER the project

@@ -1,4 +1,4 @@
-namespace Cadwell.PgPkg.Tool.Tests;
+namespace OoBDev.PgPkg.Tool.Tests;
 
 /// <summary>
 /// A [Fact] that skips itself when the pgschema executable is not resolvable.

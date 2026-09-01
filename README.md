@@ -12,8 +12,8 @@ pgpkg deploy MyApp.Database-1.0.0.pgpkg --connection "Host=...;Database=myapp"
 
 | Component | Description |
 |-----------|-------------|
-| **`Cadwell.PgPkg.Sdk`** | MSBuild SDK. Author a `.pgpkgproj`, run `dotnet build`, get a `.pgpkg` zip. |
-| **`Cadwell.PgPkg.Tool`** (`pgpkg`) | .NET global tool. `deploy`, `diff`, and `publish` commands backed by [pgschema](https://github.com/pgschema/pgschema). |
+| **`OoBDev.PgPkg.Sdk`** | MSBuild SDK. Author a `.pgpkgproj`, run `dotnet build`, get a `.pgpkg` zip. |
+| **`OoBDev.PgPkg.Tool`** (`pgpkg`) | .NET global tool. `deploy`, `diff`, and `publish` commands backed by [pgschema](https://github.com/pgschema/pgschema). |
 | **`pgpkg-ef`** (`.ps1` / `.sh`) | Shell scripts that extract a desired-state schema from any EF Core `DbContext` via `GenerateCreateScript()` — no migrations required. |
 
 ## Quick Start
@@ -22,7 +22,7 @@ pgpkg deploy MyApp.Database-1.0.0.pgpkg --connection "Host=...;Database=myapp"
 
 ```xml
 <!-- MyApp.Database.pgpkgproj -->
-<Project Sdk="Cadwell.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
+<Project Sdk="OoBDev.PgPkg.Sdk/1.0.0" DefaultTargets="Build">
   <PropertyGroup>
     <DatabaseName>myapp</DatabaseName>
     <Version>1.0.0</Version>

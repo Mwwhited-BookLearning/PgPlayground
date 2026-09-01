@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 
-namespace Cadwell.PgPkg.Tool;
+namespace OoBDev.PgPkg.Tool;
 
 /// <summary>
 /// pgpkg deploy — extract a .pgpkg and apply it to the target database via pgschema.

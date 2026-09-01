@@ -1,5 +1,5 @@
 using System.CommandLine;
-using Cadwell.PgPkg.Tool;
+using OoBDev.PgPkg.Tool;
 
 var rootCommand = new RootCommand("pgpkg — PostgreSQL desired-state package deployer");
 

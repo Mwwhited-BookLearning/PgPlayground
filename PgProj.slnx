@@ -17,11 +17,11 @@
     <File Path="docs/technical.md" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Cadwell.PgPkg.Sdk/Cadwell.PgPkg.Sdk.csproj" />
-    <Project Path="src/Cadwell.PgPkg.Tool/Cadwell.PgPkg.Tool.csproj" />
+    <Project Path="src/OoBDev.PgPkg.Sdk/OoBDev.PgPkg.Sdk.csproj" />
+    <Project Path="src/OoBDev.PgPkg.Tool/OoBDev.PgPkg.Tool.csproj" />
   </Folder>
   <Project Path="samples/MyApp.Data/SchemaScript/SchemaScript.csproj" />
   <Folder Name="/tests/">
-    <Project Path="tests/Cadwell.PgPkg.Tool.Tests/Cadwell.PgPkg.Tool.Tests.csproj" />
+    <Project Path="tests/OoBDev.PgPkg.Tool.Tests/OoBDev.PgPkg.Tool.Tests.csproj" />
   </Folder>
 </Solution>

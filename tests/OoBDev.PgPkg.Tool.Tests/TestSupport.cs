@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace Cadwell.PgPkg.Tool.Tests;
+namespace OoBDev.PgPkg.Tool.Tests;
 
 internal static class TestSupport
 {

@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Text.Json;
 
-namespace Cadwell.PgPkg.Tool.Tests;
+namespace OoBDev.PgPkg.Tool.Tests;
 
 /// <summary>
 /// Builds the real sample .pgpkgproj through MSBuild and inspects the resulting
@@ -14,7 +14,7 @@ public sealed class SdkPackagingTests
     {
         await TestSupport.RunAsync("dotnet", [
             "pack",
-            Path.Combine(TestSupport.RepoRoot, "src", "Cadwell.PgPkg.Sdk", "Cadwell.PgPkg.Sdk.csproj"),
+            Path.Combine(TestSupport.RepoRoot, "src", "OoBDev.PgPkg.Sdk", "OoBDev.PgPkg.Sdk.csproj"),
             "-o", Path.Combine(TestSupport.RepoRoot, "local-feed"),
         ]);
 

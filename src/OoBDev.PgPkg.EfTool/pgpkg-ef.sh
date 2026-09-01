@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # pgpkg-ef.sh — Extract a PostgreSQL desired-state schema from an EF Core
-# project and stage it for Cadwell.PgPkg.Sdk.
+# project and stage it for OoBDev.PgPkg.Sdk.
 #
 # Builds the SchemaScript helper project (which calls GenerateCreateScript())
 # and runs it to produce a pure desired-state SQL file.

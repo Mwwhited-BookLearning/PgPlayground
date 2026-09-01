@@ -5,9 +5,9 @@
 PgProj is a .NET 10 SDK + CLI toolchain that brings DACPAC-style desired-state database deployments to PostgreSQL using the `pgschema` Go binary.
 
 **Components:**
-- `Cadwell.PgPkg.Sdk` — MSBuild SDK NuGet package defining the `.pgpkgproj` project type; outputs a `.pgpkg` ZIP with layout `schema/{databaseName}/`
-- `Cadwell.PgPkg.Tool` (`pgpkg` CLI) — dotnet global tool; `deploy`, `diff`, `publish` commands wrapping pgschema
-- `pgpkg-ef` (`src/Cadwell.PgPkg.EfTool/pgpkg-ef.ps1` + `.sh`) — thin scripts that build and run a `SchemaScript` console app to call `DbContext.GenerateCreateScript()`; no EF migrations involved
+- `OoBDev.PgPkg.Sdk` — MSBuild SDK NuGet package defining the `.pgpkgproj` project type; outputs a `.pgpkg` ZIP with layout `schema/{databaseName}/`
+- `OoBDev.PgPkg.Tool` (`pgpkg` CLI) — dotnet global tool; `deploy`, `diff`, `publish` commands wrapping pgschema
+- `pgpkg-ef` (`src/OoBDev.PgPkg.EfTool/pgpkg-ef.ps1` + `.sh`) — thin scripts that build and run a `SchemaScript` console app to call `DbContext.GenerateCreateScript()`; no EF migrations involved
 
 **Why:** Fills the gap between SQL Server's DACPAC tooling and Postgres; integrates with standard .NET build pipelines.
 
@@ -29,7 +29,7 @@ PgProj is a .NET 10 SDK + CLI toolchain that brings DACPAC-style desired-state d
 .\scripts\pack-sdk.ps1 -Version 1.x.x
 ```
 
-NuGet SDK resolver requires version in `Sdk="Cadwell.PgPkg.Sdk/x.y.z"`. Local feed is at `local-feed/` (gitignored); `nuget.config` points to it.
+NuGet SDK resolver requires version in `Sdk="OoBDev.PgPkg.Sdk/x.y.z"`. Local feed is at `local-feed/` (gitignored); `nuget.config` points to it.
 
 ## Containers / local dev
 
